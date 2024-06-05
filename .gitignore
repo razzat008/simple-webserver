@@ -1,4 +1,5 @@
 client
+bin/
 main
 *.out
 *.o
