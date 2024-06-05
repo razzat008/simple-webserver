@@ -1,9 +1,10 @@
 #include "../lib/config.h"
+#include <cstring>
 // handles messages from clients
 void *handle_client(void *client_fd);
+// void send_response(int client_fd);
 
 int main(int argc, char *argv[]) {
-
   int server_fd;
   long port_num = 8000;
   struct sockaddr_in server_addr;
@@ -33,7 +34,6 @@ int main(int argc, char *argv[]) {
     perror("Error while listening on the port!!!");
     exit(1);
   }
-  // std::cout << std::endl << "I'm listening!" << std::endl;
 
   // listen for client
   while (1) {
@@ -49,8 +49,6 @@ int main(int argc, char *argv[]) {
       // free(client_fd);
       continue;
     }
-    // std::cout << std::endl << "Ready for accepting connections!" <<
-    // std::endl;
 
     pthread_t thread_id;
     if (pthread_create(&thread_id, NULL, handle_client, (void *)client_fd) !=
@@ -61,12 +59,17 @@ int main(int argc, char *argv[]) {
     pthread_detach(thread_id);
   }
 
+  close(server_fd);
   return EXIT_SUCCESS;
 }
 
 void *handle_client(void *client_fd_ptr) {
   int client_fd = *((int *)client_fd_ptr);
-  char *myMessage = new char[2048];
+  // char *myMessage = new char[100]; // this doesn't print all the requests
+  // memset(myMessage, 0, 100);
+  // obtained from the client idk why
+  char myMessage[1024] = {0}; // but this does
+  // char *myMessage[1096]; // but this does
   auto bytesRead = recv(client_fd, myMessage, sizeof(myMessage), 0);
   if (bytesRead < 0) {
     perror("\nError reading from client!!\n");
@@ -74,13 +77,15 @@ void *handle_client(void *client_fd_ptr) {
     free(client_fd_ptr);
     return NULL;
   }
+
   std::cout << myMessage << std::endl;
 
   std::string response = "HTTP/1.1 200 OK\r\nContent-Type: "
-                         "text/html\r\n\r\n<html><body><h1>Hello "
-                         "!</h1></body></html>\r\n";
+                         "text/html\r\n\r\n<html><body><h1>Hello there babygirl"
+                         "🫰</h1></body></html>\r\n";
 
   send(client_fd, response.c_str(), response.size(), 0);
+  // delete[] myMessage;
   close(client_fd);
   return NULL;
 }
